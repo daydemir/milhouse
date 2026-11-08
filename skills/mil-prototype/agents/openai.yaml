@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mil Prototype"
+  short_description: "Build disposable decision prototypes for Mil Plan"
+  default_prompt: "Create the cheapest useful prototype for this Wayfinder decision and return it for human review."

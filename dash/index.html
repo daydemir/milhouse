@@ -1,0 +1,694 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+<title>milhouse</title>
+<style>
+  /* lavender operator theme — dense local operator dashboard. Light default, dark via prefers-color-scheme
+     + [data-theme] override so the topbar toggle wins both ways. */
+  :root{
+    --bg:#f4f1f9; --panel:#fbfaff; --panel2:#efe9f8; --side:#ece5f6;
+    --fg:#1c1a21; --dim:#6c6579; --line:#e4e0ea; --line2:#eee9f5;
+    --blue:#7a5cb0; --blue-wash:#efe9f8; --blue-bd:#d8cdeb;
+    --purple:#2a7f7a; --grey:#9a93a8; --gold:#b58a2e;
+    --green:#18794e; --red:#c13515; --amber:#9a6700;
+    --ink-fill:#2b2436; --on-ink:#faf9fb;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){:root{
+    --bg:#141118; --panel:#1e1b24; --panel2:#17151c; --side:#1a1720;
+    --fg:#e9e6f0; --dim:#9b93a8; --line:#2c2833; --line2:#241f2c;
+    --blue:#c0a7ec; --blue-wash:#241d31; --blue-bd:#3a3049;
+    --purple:#4db3ac; --grey:#7d7690; --gold:#d6a53a;
+    --green:#4ac48a; --red:#e8735a; --amber:#d6a53a;
+    --ink-fill:#c0a7ec; --on-ink:#16131c;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#141118; --panel:#1e1b24; --panel2:#17151c; --side:#1a1720;
+    --fg:#e9e6f0; --dim:#9b93a8; --line:#2c2833; --line2:#241f2c;
+    --blue:#c0a7ec; --blue-wash:#241d31; --blue-bd:#3a3049;
+    --purple:#4db3ac; --grey:#7d7690; --gold:#d6a53a;
+    --green:#4ac48a; --red:#e8735a; --amber:#d6a53a;
+    --ink-fill:#c0a7ec; --on-ink:#16131c;
+  }
+  :root[data-theme="light"]{
+    --bg:#f4f1f9; --panel:#fbfaff; --panel2:#efe9f8; --side:#ece5f6;
+    --fg:#1c1a21; --dim:#6c6579; --line:#e4e0ea; --line2:#eee9f5;
+    --blue:#7a5cb0; --blue-wash:#efe9f8; --blue-bd:#d8cdeb;
+    --purple:#2a7f7a; --grey:#9a93a8; --gold:#b58a2e;
+    --green:#18794e; --red:#c13515; --amber:#9a6700;
+    --ink-fill:#2b2436; --on-ink:#faf9fb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 var(--sans)}
+  a{color:var(--blue);text-decoration:none} a:hover{text-decoration:underline}
+  .mono{font-family:var(--mono)} .dim{color:var(--dim)} .small{font-size:12px}
+  code{font-family:var(--mono);font-size:.92em}
+
+  .app{display:grid;grid-template-columns:212px minmax(0,1fr);min-height:100vh}
+  /* sidebar */
+  .side{border-right:1px solid var(--line);background:var(--side);padding:18px 13px;position:sticky;top:0;height:100vh;overflow:auto}
+  .brandrow{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+  .logo{width:34px;height:34px;border-radius:8px;background:var(--blue);color:var(--on-ink);display:grid;place-items:center;font-size:19px;flex:none}
+  .brand{font:700 18px/1.1 var(--sans)} .tag{color:var(--dim);font-size:11px}
+  .navi{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:7px;color:var(--fg);cursor:pointer;font-size:14px;user-select:none;margin-bottom:2px}
+  .navi:hover{background:var(--blue-wash);text-decoration:none}
+  .navi.on{background:var(--blue-wash);font-weight:600;box-shadow:inset 2px 0 0 var(--blue)}
+  .navi .n{color:var(--dim);font:600 10px/1 var(--mono)}
+  .side-foot{margin-top:20px;padding-top:12px;border-top:1px solid var(--line);color:var(--dim);font-size:11px;line-height:1.7}
+
+  .main{padding:16px 24px 60px;max-width:1140px;min-width:0}
+  /* topbar */
+  .topbar{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;padding:0 0 11px;margin-bottom:16px;border-bottom:1px solid var(--line);font:12px/1.5 var(--mono);color:var(--dim)}
+  .topbar .kv b{color:var(--fg);font-weight:600;font-variant-numeric:tabular-nums}
+  .topbar .kv b.over{color:var(--red)} .topbar .kv b.warn{color:var(--amber)}
+  .topbar .grow{flex:1}
+  .topbar select{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:2px 5px;font:600 12px/1 var(--mono)}
+  .tbtn{border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:6px;padding:3px 10px;cursor:pointer;font:600 12px/1 var(--mono)}
+  .tbtn:hover{border-color:var(--blue-bd)}
+  .msg{font:11px/1 var(--mono);color:var(--dim)}
+
+  /* headings */
+  .hd{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:3px;flex-wrap:wrap}
+  h1.h1{font:700 21px/1.2 var(--sans);margin:0}
+  .sub{color:var(--dim);font-size:13px;margin:2px 0 16px}
+  .lbl{font:600 11px/1 var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--dim);margin-bottom:8px}
+  .sect{margin-top:24px}
+
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border:1px solid var(--line);border-radius:999px;background:var(--panel);color:var(--dim);font:600 12px/1.3 var(--mono);white-space:nowrap}
+  .pill .d{width:7px;height:7px;border-radius:999px;background:var(--dim)}
+  .g{color:var(--green)} .a{color:var(--amber)} .r{color:var(--red)} .b{color:var(--blue)}
+  .g .d,.d.g{background:var(--green)} .a .d,.d.a{background:var(--amber)} .r .d,.d.r{background:var(--red)} .b .d,.d.b{background:var(--blue)}
+
+  /* tables */
+  table.tbl{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  table.tbl th,table.tbl td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px}
+  table.tbl th{font:600 11px/1 var(--mono);text-transform:uppercase;letter-spacing:.03em;color:var(--dim);background:var(--side)}
+  table.tbl tr:last-child td{border-bottom:0}
+  table.tbl td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}
+  .tblwrap{overflow-x:auto}
+
+  /* segmented control */
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--panel)}
+  .seg a{padding:6px 13px;font:600 12px/1 var(--mono);cursor:pointer;color:var(--dim);border-right:1px solid var(--line)}
+  .seg a:last-child{border-right:0} .seg a:hover{color:var(--fg);text-decoration:none}
+  .seg a.on{background:var(--ink-fill);color:var(--on-ink)}
+  /* option chips (cap / floor pickers) */
+  .segw{display:flex;flex-wrap:wrap;gap:6px}
+  .opt{border:1px solid var(--line);border-radius:7px;padding:7px 12px;font:600 12px/1 var(--mono);cursor:pointer;background:var(--panel);user-select:none}
+  .opt:hover{border-color:var(--blue-bd)} .opt.on{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue);color:var(--blue)}
+
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--fg);font:600 12px/1 var(--mono);cursor:pointer}
+  .btn:hover{border-color:var(--blue-bd)} .btn.pri{background:var(--ink-fill);color:var(--on-ink);border-color:var(--ink-fill)}
+  .btn.cut{color:var(--red);border-color:var(--red)} .btn.cut:hover{background:var(--red);color:var(--on-ink)}
+  .box{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:14px 16px}
+  .summ{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;font-size:15px}
+  .summ b{font-weight:700;font-variant-numeric:tabular-nums}
+
+  /* runs master-detail */
+  .runs{display:grid;grid-template-columns:250px minmax(0,1fr);border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden}
+  .rail{border-right:1px solid var(--line);background:var(--side);padding:8px;min-height:520px;max-height:calc(100vh - 220px);overflow:auto}
+  .rlbl{font:600 11px/1 var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--dim);padding:6px 8px}
+  .runitem{padding:9px 10px;border:1px solid var(--line);border-radius:7px;margin-bottom:6px;background:var(--panel);cursor:pointer}
+  .runitem:hover{border-color:var(--blue-bd)}
+  .runitem.on{border-color:var(--blue);box-shadow:inset 2px 0 0 var(--blue)}
+  .runitem .rt{font:600 13px/1.3 var(--sans);display:flex;align-items:center;gap:6px}
+  .runitem .sid{font:700 11px/1 var(--mono);color:var(--blue)}
+  .runitem .rs{font-size:12px;margin-top:3px;display:flex;align-items:center;gap:6px}
+  .runitem .dot{width:7px;height:7px;border-radius:999px;flex:none}
+  .runitem .rmeta{display:flex;justify-content:space-between;margin-top:4px;color:var(--dim);font:11px/1 var(--mono);font-variant-numeric:tabular-nums}
+  .s-green{color:var(--green)} .s-failed{color:var(--red)} .s-running{color:var(--amber)} .s-unknown{color:var(--dim)}
+  .s-green .dot,.dot.s-green{background:var(--green)} .s-failed .dot,.dot.s-failed{background:var(--red)}
+  .s-running .dot,.dot.s-running{background:var(--amber)} .s-unknown .dot,.dot.s-unknown{background:var(--dim)}
+  .detail{padding:16px 18px;min-width:0}
+
+  /* stage tracker */
+  .stage{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0 8px}
+  .stcell{border:1px solid var(--line);border-radius:8px;padding:11px 12px;background:var(--panel)}
+  .stcell.act{border-color:var(--amber);background:var(--blue-wash)}
+  .stcell .sn{display:flex;align-items:center;justify-content:space-between;font:600 13px/1 var(--sans)}
+  .stcell .state{font:600 11px/1.4 var(--mono)}
+  .stcell .sm{font:11px/1.4 var(--mono);color:var(--dim);margin-top:4px}
+  .stcell .arrow{color:var(--dim);font-size:12px}
+
+  /* event stream */
+  .stream{border:1px solid var(--line);border-radius:8px;background:var(--panel2);margin-top:6px;overflow:hidden}
+  .streamhd{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--side);font:600 11px/1 var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--dim)}
+  .ev{display:grid;grid-template-columns:14px 74px 1fr;gap:9px;align-items:baseline;padding:7px 12px;border-bottom:1px solid var(--line2);font-size:13px}
+  .ev:last-child{border-bottom:0}
+  .ev .edot{width:7px;height:7px;border-radius:999px;background:var(--dim);align-self:center}
+  .ev .edot.contract{background:var(--blue)} .ev .edot.build{background:var(--amber)}
+  .ev .edot.pass{background:var(--green)} .ev .edot.fail{background:var(--red)}
+  .ev .ets{color:var(--dim);font:12px/1.5 var(--mono);font-variant-numeric:tabular-nums}
+  .ev .etext{min-width:0;overflow-wrap:anywhere}
+  .streamempty{padding:14px 12px;color:var(--dim);font-size:13px}
+
+  /* stat cells */
+  .stat{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
+  .statcell{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--panel)}
+  .statcell .sv{font:700 16px/1.2 var(--mono);font-variant-numeric:tabular-nums}
+  .statcell .sl{font-size:11px;color:var(--dim);margin-top:3px}
+
+  /* prompt editor + versioning */
+  .ed{border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden;margin-bottom:12px}
+  .edhd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--side);font:12px/1.4 var(--mono);color:var(--dim);flex-wrap:wrap}
+  textarea.ta{width:100%;border:0;padding:12px 13px;font:12.5px/1.55 var(--mono);resize:vertical;color:var(--fg);background:var(--panel);outline:none;min-height:180px;display:block}
+  .vers{border-top:1px solid var(--line);padding:8px 12px;background:var(--panel2)}
+  .vrow{display:flex;align-items:center;gap:10px;padding:5px 6px;border-radius:6px;font:12px/1.4 var(--mono);cursor:pointer}
+  .vrow:hover{background:var(--blue-wash)}
+  .vrow .vh{font-weight:600;color:var(--blue)} .vrow .vt{color:var(--dim)}
+  .vrow.cur .vh{color:var(--green)}
+  .vrow .vsp{flex:1} .vgrow{flex:1}
+  .verview{margin-top:8px}
+  .verview pre{margin:0;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px 12px;font:11.5px/1.5 var(--mono);white-space:pre-wrap;max-height:260px;overflow:auto;color:var(--fg)}
+
+  /* architecture flow */
+  .flow{display:grid;grid-template-columns:1fr 30px 1fr 30px 1fr;align-items:stretch;gap:6px}
+  .fnode{border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--panel)}
+  .fnode h4{margin:0 0 4px;font:600 14px/1.2 var(--sans)}
+  .fnode p{margin:0;font-size:12px;color:var(--dim)}
+  .arr{display:grid;place-items:center;color:var(--dim);font-size:20px}
+  .loopnote{border:1px solid var(--line);background:var(--blue-wash);border-radius:8px;padding:10px 12px;margin-top:8px;font-size:13px}
+
+  /* ---- ported bench / chart / spend styles (reskinned) ---- */
+  .bhead{font:600 15px/1.4 var(--mono);color:var(--blue);margin-bottom:2px}
+  .bverdict{font:13px/1.5 var(--mono);color:var(--fg);margin-bottom:12px}
+  .legend{font-size:11px;color:var(--dim);line-height:1.6;margin-top:8px}
+  .chart-empty{color:var(--dim);font-size:12px}
+  .bench{display:grid;gap:9px}
+  .srow{display:grid;grid-template-columns:190px 1fr 300px;align-items:center;gap:12px;cursor:pointer;padding:3px 4px;border-radius:6px}
+  .srow:hover{background:var(--blue-wash)}
+  .srow .bt{display:flex;align-items:center;gap:6px;min-width:0}
+  .srow .tn{font:600 12px/1.3 var(--mono);color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .hold{flex:0 0 auto;padding:0 6px;border-radius:999px;font:600 9px/1.7 var(--mono);border:1px solid var(--gold);color:var(--gold);white-space:nowrap}
+  .strack{position:relative;height:22px;background:var(--panel2);border:1px solid var(--line);border-radius:5px}
+  .smark{position:absolute;top:50%;width:9px;height:9px;border-radius:50%;transform:translate(-50%,-50%);border:1px solid rgba(0,0,0,.25)}
+  .stick{position:absolute;top:-2px;bottom:-2px;width:2px;margin-left:-1px;border-radius:1px}
+  .stick.gold{background:var(--gold);top:-3px;bottom:-3px;width:3px} .stick.ref{background:var(--grey)}
+  .sval{font:600 11px/1.4 var(--mono);color:var(--fg);text-align:right}
+  .sval .gold{color:var(--gold)} .sval .num{color:var(--blue)} .sval.empty{color:var(--dim);font-weight:400}
+  .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:12px}
+  .pmini{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;cursor:pointer}
+  .pmini:hover{border-color:var(--blue-bd)}
+  .pmini .pt{font:600 11px/1.3 var(--mono);color:var(--fg);display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px}
+  .anom{padding:0 5px;border-radius:999px;font:600 9px/1.6 var(--mono);border:1px solid var(--gold);color:var(--gold);white-space:nowrap}
+  .drill{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+  .drill .dh{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+  .drill .dh .tt{font:600 14px/1 var(--mono);color:var(--fg)}
+  .drill .x{margin-left:auto;cursor:pointer;color:var(--dim);font:600 15px/1 var(--mono);border:1px solid var(--line);border-radius:6px;padding:2px 9px}
+  .drill .x:hover{color:var(--fg);background:var(--blue-wash)}
+  .caption{font:13px/1.5 var(--mono);color:var(--fg);margin-top:8px} .caption b{color:var(--blue)}
+  table.att{border-collapse:collapse;width:100%;font:11px/1.5 var(--mono);margin-top:4px}
+  table.att th{color:var(--dim);text-align:left;font-weight:600;padding:3px 8px;border-bottom:1px solid var(--line)}
+  table.att td{padding:3px 8px;border-bottom:1px solid var(--line2);color:var(--fg);white-space:nowrap}
+  table.att td.wk{color:var(--dim);max-width:340px;overflow:hidden;text-overflow:ellipsis}
+  table.att tr:hover td{background:var(--blue-wash)}
+  svg{width:100%;height:auto;display:block;overflow:visible}
+  .strip{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+  .cell{flex:0 1 60px;min-width:34px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;font:600 10px var(--mono);color:var(--on-ink);background:var(--dim)}
+  .cell.s-green{background:var(--green)} .cell.s-failed{background:var(--red)} .cell.s-running{background:var(--amber)}
+  details.disc>summary{list-style:none;cursor:pointer;color:var(--dim);font:600 11px/1.45 var(--mono);padding:5px 7px;margin-left:-7px;border-radius:6px}
+  details.disc>summary::-webkit-details-marker{display:none}
+  details.disc>summary::before{content:"▸";display:inline-block;width:14px;color:var(--dim)}
+  details.disc[open]>summary::before{content:"▾"}
+  details.disc>summary:hover{background:var(--blue-wash);color:var(--fg)}
+  details.disc{margin-top:8px}
+  pre.mono{margin:6px 0 0;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:11px/1.5 var(--mono);color:var(--fg);white-space:pre-wrap;max-height:280px;overflow:auto}
+  .act{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px}
+  .acthd{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+  .actkind{font:600 10px/1.5 var(--mono);color:var(--blue);border:1px solid var(--blue-bd);border-radius:999px;padding:0 6px}
+  .actfile{font:11px/1 var(--mono);color:var(--dim)}
+  .act pre{margin:0;font:11px/1.5 var(--mono);color:var(--fg);white-space:pre-wrap;max-height:160px;overflow:auto}
+  .verdict{font:600 15px/1 var(--mono)} .verdict.approve{color:var(--green)} .verdict.reject{color:var(--red)} .verdict.none,.verdict.stale{color:var(--dim)}
+  .gnum{font:600 15px/1 var(--mono);color:var(--blue)} .gnum .q{font-weight:400;color:var(--dim)}
+  .lenses{font:11px/1.5 var(--mono);color:var(--dim);margin-top:6px}
+  .reason{color:var(--red);font-size:12px;font-family:var(--mono);margin-top:6px}
+  ul.cites{margin:6px 0 0;padding-left:18px;display:grid;gap:6px} ul.cites li{font-size:12px;color:var(--fg)}
+  .q{font-size:11px;color:var(--dim)}
+
+  #lb{position:fixed;inset:0;background:rgba(20,17,24,.86);display:none;align-items:center;justify-content:center;padding:24px;z-index:50;cursor:zoom-out}
+  #lb.on{display:flex} #lb img{max-width:100%;max-height:100%;border-radius:6px}
+
+  @media (max-width:860px){
+    .app{grid-template-columns:1fr}
+    .side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+    .brandrow{margin:0 12px 0 0} .side-foot{display:none}
+    .navi{margin:0} .main{padding:14px}
+    .runs{grid-template-columns:1fr} .rail{border-right:0;border-bottom:1px solid var(--line);max-height:none;display:flex;gap:6px;overflow-x:auto}
+    .rail .rlbl{display:none} .runitem{min-width:180px;margin:0}
+    .stage{grid-template-columns:1fr} .stat{grid-template-columns:repeat(2,1fr)}
+    .flow{grid-template-columns:1fr} .arr{display:none}
+    .srow{grid-template-columns:150px 1fr;gap:6px 10px} .srow .sval{grid-column:1/-1;text-align:left}
+    svg{min-width:640px} .pmini svg{min-width:260px}
+  }
+</style>
+<div class="app">
+  <aside class="side">
+    <div class="brandrow">
+      <div class="logo">🏠</div>
+      <div><div class="brand">Milhouse</div><div class="tag">v0.1.0 · mil</div></div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="side-foot">Local · ~/.milhouse<br>Trusted machine only</div>
+  </aside>
+  <main class="main">
+    <div class="topbar" id="topbar"></div>
+    <section id="page"></section>
+  </main>
+</div>
+<div id="lb"><img alt="screenshot"></div>
+<script>
+const $=(s)=>document.querySelector(s);
+const esc=(s)=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const scls=(s)=>({green:'s-green',failed:'s-failed',running:'s-running'}[s]||(String(s||'').startsWith('failed')?'s-failed':'s-unknown'));
+const fmtDur=(s)=>{s=+s||0;if(!s)return '—';const m=Math.round(s/60);return m>=60?`${Math.floor(m/60)}h${m%60}m`:`${m}m`;};
+const fmtCost=(c)=>c!=null?('$'+(+c).toFixed(2)):'—';
+const fmtWhen=(sec)=>{if(!sec)return '—';const d=new Date(sec*1000);return isNaN(d)?'—':d.toLocaleString([],{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});};
+const fmtClock=(sec)=>{if(!sec)return '—';const d=new Date(sec*1000);return isNaN(d)?'—':d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});};
+const fmtUtc=(sec)=>{if(!sec)return '—';const d=new Date(sec*1000);return isNaN(d)?'—':d.toISOString().slice(5,16).replace('T',' ')+' UTC';};
+const fmtUtcHour=(sec)=>{if(!sec)return '—';const d=new Date(sec*1000);return isNaN(d)?'—':d.toISOString().slice(11,16)+' UTC';};
+const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+const mean=(xs)=>xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;
+const rnd=(x)=>x==null?null:Math.round(x);
+const SERIES='var(--blue)';
+
+/* ---------- writable controls ---------- */
+async function postControl(path,body,msgEl){
+  if(msgEl)msgEl.textContent='…';
+  try{
+    const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const j=await r.json();
+    if(msgEl)msgEl.textContent=j.ok?(j.msg||'saved'):('error: '+(j.msg||'failed'));
+    if(j.ok)setTimeout(tick,350);
+    return j;
+  }catch(e){if(msgEl)msgEl.textContent='endpoint unreachable';}
+}
+const savePrompt=(id,text,msgEl)=>{
+  const j=postControl('prompt',{file:id,text},msgEl);
+  if(DATA&&DATA.prompts&&DATA.prompts[id])DATA.prompts[id].text=text;
+  return j;
+};
+const restorePrompt=(id,hash,msgEl)=>postControl('prompt',{file:id,restore:hash},msgEl);
+async function viewVersion(id,hash){
+  const box=$('#verview-'+id); if(!box)return;
+  box.innerHTML='<pre>loading…</pre>';
+  try{
+    const r=await fetch(`version?file=${encodeURIComponent(id)}&hash=${encodeURIComponent(hash)}`);
+    const j=await r.json();
+    box.innerHTML=j.ok?`<pre>${esc(j.content)}</pre>`:`<pre>error: ${esc(j.msg||'not found')}</pre>`;
+  }catch(e){box.innerHTML='<pre>version endpoint unreachable</pre>';}
+}
+async function cancelRun(base,msgEl){
+  if(msgEl)msgEl.textContent='…';
+  try{
+    const r=await fetch('cancel',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(base?{run:base}:{})});
+    const j=await r.json();
+    if(msgEl)msgEl.textContent=r.ok&&j.ok!==false?(j.cancelled?('cancelled '+j.cancelled):'no active run'):(j.msg||'cancel failed');
+    setTimeout(tick,350);
+  }catch(e){if(msgEl)msgEl.textContent='cancel endpoint unreachable';}
+}
+
+/* ---------- bench helpers (ported) ---------- */
+function frontier(pts){
+  const p=pts.filter(q=>q.cost!=null&&q.score!=null).sort((a,b)=>a.cost-b.cost||b.score-a.score);
+  const f=[];let best=-Infinity;
+  p.forEach(q=>{if(q.score>best){f.push(q);best=q.score;}});
+  return f;
+}
+const frontierPath=(pts,X,Y)=>{const f=frontier(pts);
+  return f.length>1?`<polyline points="${f.map(q=>`${X(q.cost).toFixed(1)},${Y(q.score).toFixed(1)}`).join(' ')}" fill="none" stroke="var(--fg)" stroke-width="1.2" opacity=".4" stroke-dasharray="1 3"><title>pareto frontier</title></polyline>`:'';};
+const activeVer=(bench)=>((bench&&bench.versions)||[])[0]||null;
+function bestArm(t){const a=t.variants||{};const ns=Object.keys(a);
+  if(!ns.length)return null;const b=ns.reduce((x,y)=>a[y].score>a[x].score?y:x);return {name:b,...a[b]};}
+function anomaly(t){const r=t.reference,g=(t.gold||{}).score;
+  if(r==null||g==null)return '';if(r<g)return 'ideal < gold';if(r-g>=10)return `ideal +${Math.round(r-g)} vs gold`;return '';}
+
+const BENCH_LEGEND='ideal = best a Fable reference run reached (ceiling, cost n/a) · gold ◆ = a blind Fable run, the score to beat · ● = a Milhouse run · holdout = sealed task, never used to tune';
+
+function paretoSVG(t,parity,mini,version){
+  const ref=t.reference, gold=t.gold||{}, arms=t.variants||{};
+  const armNames=Object.keys(arms).sort();
+  const hist={};
+  if(!mini) parity.filter(p=>p.task===t.task&&p.bench===version&&p.cost!=null).forEach(p=>{(hist[p.variant]=hist[p.variant]||[]).push(p);});
+  Object.values(hist).forEach(a=>a.sort((x,y)=>x.ts-y.ts));
+  const costs=[];
+  armNames.forEach(n=>{if(arms[n].cost!=null)costs.push(arms[n].cost);});
+  (gold.runs||[]).forEach(r=>{if(r.cost!=null)costs.push(r.cost);});
+  if(gold.cost!=null)costs.push(gold.cost);
+  if(!mini)Object.values(hist).forEach(a=>a.forEach(p=>costs.push(p.cost)));
+  const xmax=Math.max(1.15*(costs.length?Math.max(...costs):0),0.5);
+  const W=mini?300:920,H=mini?160:430,pl=mini?8:52,pr=mini?12:150,pt=mini?10:18,pb=mini?10:40;
+  const iw=W-pl-pr,ih=H-pt-pb;
+  const X=c=>pl+(clamp(c,0,xmax)/xmax)*iw;
+  const Y=s=>pt+ih-(clamp(s,0,100)/100)*ih;
+  const dia=(cx,cy,r,fill,stroke,title)=>`<path d="M${cx.toFixed(1)} ${(cy-r).toFixed(1)}L${(cx+r).toFixed(1)} ${cy.toFixed(1)}L${cx.toFixed(1)} ${(cy+r).toFixed(1)}L${(cx-r).toFixed(1)} ${cy.toFixed(1)}Z" fill="${fill}"${stroke?` stroke="${stroke}" stroke-width="1.4"`:''}>${title?`<title>${title}</title>`:''}</path>`;
+  const parts=[];
+  if(!mini){
+    [0,25,50,75,100].forEach(g=>{parts.push(`<line x1="${pl}" x2="${pl+iw}" y1="${Y(g)}" y2="${Y(g)}" stroke="var(--line)"/><text x="${pl-6}" y="${Y(g)+3}" fill="var(--dim)" font-size="9" text-anchor="end" font-family="var(--mono)">${g}</text>`);});
+    [0,xmax/2,xmax].forEach(c=>{parts.push(`<line x1="${X(c)}" x2="${X(c)}" y1="${pt}" y2="${pt+ih}" stroke="var(--line2)"/><text x="${X(c)}" y="${pt+ih+14}" fill="var(--dim)" font-size="9" text-anchor="middle" font-family="var(--mono)">$${c.toFixed(2)}</text>`);});
+    parts.push(`<text x="${pl+iw/2}" y="${H-4}" fill="var(--dim)" font-size="10" text-anchor="middle" font-family="var(--mono)">cost (USD)</text>`);
+  }
+  if(ref!=null){
+    parts.push(`<line x1="${pl}" x2="${pl+iw}" y1="${Y(ref)}" y2="${Y(ref)}" stroke="var(--grey)" stroke-dasharray="5 4" opacity=".9"><title>ideal ${ref} — quality ceiling</title></line>`);
+    if(!mini)parts.push(`<text x="${pl+iw}" y="${Y(ref)-5}" fill="var(--grey)" font-size="10" text-anchor="end" font-family="var(--mono)">ideal ${ref} · ceiling</text>`);
+  }
+  if(gold.score!=null){
+    if(gold.cost!=null){
+      const gx=X(gold.cost),gy=Y(gold.score);
+      parts.push(dia(gx,gy,mini?4:6,'var(--gold)',null,`gold ${gold.score}×${gold.n} · ${fmtCost(gold.cost)}`));
+      if(!mini)parts.push(`<text x="${gx+9}" y="${gy+3}" fill="var(--gold)" font-size="10" font-family="var(--mono)">gold ${gold.score}×${gold.n}</text>`);
+    } else {
+      parts.push(`<line x1="${pl}" x2="${pl+iw}" y1="${Y(gold.score)}" y2="${Y(gold.score)}" stroke="var(--gold)" stroke-dasharray="2 4" opacity=".85"><title>gold ${gold.score}×${gold.n} · cost n/a</title></line>`);
+      if(!mini)parts.push(`<text x="${pl+iw}" y="${Y(gold.score)+13}" fill="var(--gold)" font-size="10" text-anchor="end" font-family="var(--mono)">gold ${gold.score} · cost n/a</text>`);
+    }
+    if(!mini)(gold.runs||[]).forEach(r=>{if(r.cost!=null)parts.push(dia(X(r.cost),Y(r.score),5,'none','var(--gold)',`gold run ${r.score} · ${fmtCost(r.cost)}`));});
+  }
+  armNames.forEach(n=>{
+    const col=SERIES,a=arms[n];
+    if(!mini){
+      const h=(hist[n]||[]);
+      if(h.length){
+        const line=h.map(p=>`${X(p.cost).toFixed(1)},${Y(p.score).toFixed(1)}`);
+        if(a.cost!=null)line.push(`${X(a.cost).toFixed(1)},${Y(a.score).toFixed(1)}`);
+        if(line.length>1)parts.push(`<polyline points="${line.join(' ')}" fill="none" stroke="${col}" stroke-width="1" opacity=".3"/>`);
+        h.forEach(p=>parts.push(`<circle cx="${X(p.cost).toFixed(1)}" cy="${Y(p.score).toFixed(1)}" r="2.5" fill="${col}" opacity=".3"><title>${esc(n)} · ${p.score} · ${fmtCost(p.cost)}</title></circle>`));
+      }
+    }
+    if(a.cost!=null){
+      const cx=X(a.cost),cy=Y(a.score);
+      parts.push(`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${mini?4:5}" fill="${col}"><title>${esc(n)} · ${a.score} · ${fmtCost(a.cost)}</title></circle>`);
+      if(!mini){const right=cx>pl+iw*0.62;parts.push(`<text x="${(right?cx-9:cx+9).toFixed(1)}" y="${(cy-8).toFixed(1)}" fill="${col}" font-size="10" text-anchor="${right?'end':'start'}" font-family="var(--mono)">${esc(n)} ${a.score} · ${fmtCost(a.cost)}</text>`);}
+    }
+  });
+  if(!mini){
+    const fp=[];
+    armNames.forEach(n=>{if(arms[n].cost!=null)fp.push({cost:arms[n].cost,score:arms[n].score});});
+    if(gold.cost!=null&&gold.score!=null)fp.push({cost:gold.cost,score:gold.score});
+    (gold.runs||[]).forEach(r=>{if(r.cost!=null)fp.push({cost:r.cost,score:r.score});});
+    parts.push(frontierPath(fp,X,Y));
+  }
+  const an=anomaly(t);
+  if(an&&!mini)parts.push(`<text x="${pl+3}" y="${pt+11}" fill="var(--amber)" font-size="11" font-family="var(--mono)">${esc(an)}</text>`);
+  if(mini&&!armNames.length)parts.push(`<text x="${(W/2).toFixed(1)}" y="${(H/2).toFixed(1)}" fill="var(--dim)" font-size="10" text-anchor="middle" dominant-baseline="middle" font-family="var(--mono)">gold pending · no arms run yet</text>`);
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="cost vs score for ${esc(t.task)}">${parts.join('')}</svg>`;
+}
+function scoresView(ver){
+  const rows=(ver.tasks||[]).map(t=>{
+    const arms=t.variants||{},gold=t.gold||{},best=bestArm(t);
+    const marks=Object.keys(arms).sort().map(n=>`<div class="smark" style="left:${clamp(arms[n].score,0,100)}%;background:${SERIES}" title="${esc(n)} ${arms[n].score} · ${fmtCost(arms[n].cost)}"></div>`).join('');
+    const refTick=t.reference!=null?`<div class="stick ref" style="left:${clamp(t.reference,0,100)}%" title="ideal ${t.reference}"></div>`:'';
+    const goldTick=gold.score!=null?`<div class="stick gold" style="left:${clamp(gold.score,0,100)}%" title="gold ${gold.score}×${gold.n}"></div>`:'';
+    const goldTxt=gold.score!=null?`<span class="gold">gold ${gold.score}×${gold.n}</span>`:'<span class="dim">gold pending</span>';
+    let val;
+    if(best){val=`<span class="sval"><span>best <span class="num">${best.score}</span> ${esc(best.name)}${best.cost!=null?' '+fmtCost(best.cost):''}</span> · ${goldTxt} · <span>ideal ${t.reference??'—'}</span></span>`;}
+    else {val=`<span class="sval empty">${goldTxt} · ideal ${t.reference??'—'} · not yet run</span>`;}
+    return `<div class="srow" data-task="${esc(t.task)}"><div class="bt" title="${esc(t.task)}"><span class="tn">${esc(t.task)}</span>${t.holdout?'<span class="hold">holdout</span>':''}</div><div class="strack">${refTick}${goldTick}${marks}</div>${val}</div>`;
+  }).join('');
+  return `<div class="bench">${rows}</div>`;
+}
+function paretoMinis(ver){
+  const cells=(ver.tasks||[]).map(t=>{const an=anomaly(t);
+    return `<div class="pmini" data-task="${esc(t.task)}"><div class="pt"><span>${esc(t.task)}</span>${t.holdout?'<span class="hold">holdout</span>':''}${an?`<span class="anom">${esc(an)}</span>`:''}</div>${paretoSVG(t,[],true,ver.version)}</div>`;}).join('');
+  return `<div class="pgrid">${cells}</div>`;
+}
+function paretoDrill(ver,parity,taskId){
+  const t=(ver.tasks||[]).find(x=>x.task===taskId);
+  if(!t)return `<div class="chart-empty">task not found — <a href="#bench/pareto">back</a></div>`;
+  const gold=t.gold||{},best=bestArm(t);
+  let cap='';
+  if(best){const d=gold.score!=null?best.score-gold.score:null;cap=`best arm vs gold: <b>${d!=null?(d>=0?'+':'')+d:'—'}</b>${best.cost!=null?' · at '+fmtCost(best.cost):''}${gold.cost!=null?' (gold '+fmtCost(gold.cost)+')':''}`;}
+  else cap='gold pending · no arms run yet';
+  const att=parity.filter(p=>p.task===taskId&&p.bench===ver.version).sort((a,b)=>b.ts-a.ts);
+  const table=att.length?`<details class="disc"><summary>attempts (${att.length})</summary><div class="tblwrap"><table class="att"><thead><tr><th>ts</th><th>variant</th><th>score</th><th>cost</th><th>worker</th><th>work</th></tr></thead><tbody>${att.map(p=>`<tr><td>${fmtWhen(p.ts)}</td><td>${esc(p.variant)}</td><td>${p.score}</td><td>${p.cost!=null?fmtCost(p.cost):'n/a'}</td><td>${esc(p.worker)}</td><td class="wk" title="${esc(p.work)}">${esc(p.work)}</td></tr>`).join('')}</tbody></table></div></details>`:'';
+  return `<div class="drill"><div class="dh"><span class="tt">${esc(t.task)}</span>${t.holdout?'<span class="hold">holdout</span>':''}<span class="x" id="drillx" title="close (Esc)">✕</span></div>${paretoSVG(t,parity,false,ver.version)}<div class="caption">${cap}</div>${table}</div>`;
+}
+function spendHistory(h){
+  if(h&&h.error)return `<div class="reason">spend API error: ${esc(h.error)}</div>`;
+  const bs=(h&&h.buckets)||[];
+  if(!bs.length)return '';
+  const total=+h.total||0,max=Math.max(.01,...bs.map(b=>+b.total||0));
+  const W=1040,H=170,pl=36,pr=10,pt=12,pb=26,iw=W-pl-pr,ih=H-pt-pb,bw=Math.max(3,iw/bs.length*.72);
+  const Y=v=>pt+ih-(v/max)*ih;
+  const bars=bs.map((b,i)=>{const x=pl+iw*(i+.14)/bs.length,base=pt+ih;
+    const fh=base-Y(+b.fable||0),ch=base-Y(+b.claude||0);
+    return `<g><rect x="${x.toFixed(1)}" y="${(base-fh).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0,fh).toFixed(1)}" fill="var(--blue)"></rect><rect x="${x.toFixed(1)}" y="${(base-fh-ch).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0,ch).toFixed(1)}" fill="var(--purple)"></rect><title>${fmtUtc(b.ts)} · total ${fmtCost(b.total)} · fable ${fmtCost(b.fable)} · claude ${fmtCost(b.claude)}</title></g>`;}).join('');
+  const grid=[0,max/2,max].map(v=>`<line x1="${pl}" x2="${pl+iw}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="var(--line)"/><text x="${pl-6}" y="${(Y(v)+3).toFixed(1)}" fill="var(--dim)" font-size="9" text-anchor="end" font-family="var(--mono)">$${v.toFixed(0)}</text>`).join('');
+  const ref=h.refreshed_at?fmtUtcHour(h.refreshed_at):'—';
+  return `<details class="disc"><summary>API spend history — today UTC · ${fmtCost(total)}</summary><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="spend by hour">${grid}${bars}</svg><div class="legend"><span style="color:var(--blue)">fable ${fmtCost(h.fable)}</span> · <span style="color:var(--purple)">claude ${fmtCost(h.claude)}</span> · refreshed ${ref}${h.stale?' · stale':''}</div></details>`;
+}
+
+/* ---------- topbar ---------- */
+const CAP_OPTS=[[0,'no cap'],[2,'$2'],[4,'$4'],[8,'$8'],[16,'$16'],[32,'$32'],[64,'$64'],[128,'$128'],[256,'$256']];
+const FLOOR_OPTS=[[0,'grade off'],[50,'50'],[60,'60'],[70,'70'],[80,'80'],[90,'90']];
+const limPct=p=>p==null?'—':`${Math.round(+p)}%`;
+const limB=p=>p==null?'':(+p>=95?' class="over"':(+p>=80?' class="warn"':''));
+function topbar(d){
+  const spent=d.spent_today||{},cfg=d.config||{},u=d.usage_limits||{},c=u.claude||{},x=u.codex||{};
+  const total=+spent.total||((+spent.fable||0)+(+spent.claude||0));
+  const cur=+((cfg||{}).daily_cost_cap_usd||0),over=cur>0&&total>=cur;
+  const floor=+((cfg||{}).grade_floor??60);
+  const capSel=`<select id="cap-sel" title="UTC-day metered API cost cap — at or over pauses new autopilot work">${CAP_OPTS.map(([v,l])=>`<option value="${v}"${v===cur?' selected':''}>${l}</option>`).join('')}</select>`;
+  const floorSel=`<select id="floor-sel" title="minimum grader score to pass">${FLOOR_OPTS.map(([v,l])=>`<option value="${v}"${v===floor?' selected':''}>${l}</option>`).join('')}</select>`;
+  const nowUtc=Math.floor(new Date(d.generated).getTime()/1000);
+  const cl=c.error?`<span class="kv">claude <b class="over">error</b></span>`:`<span class="kv" title="5h resets ${esc(c.session_reset||'—')}; week resets ${esc(c.week_reset||'—')}">claude <b${limB(c.session_percent)}>5h ${limPct(c.session_percent)}</b> <b${limB(c.week_percent)}>wk ${limPct(c.week_percent)}</b> <b${limB(c.fable_week_percent)}>fable ${limPct(c.fable_week_percent)}</b></span>`;
+  const cx=x.error?`<span class="kv">codex <b class="over">error</b></span>`:`<span class="kv" title="plan ${esc(x.plan_type||'—')}">codex <b${limB(x.primary_percent)}>5h ${limPct(x.primary_percent)}</b> <b${limB(x.secondary_percent)}>wk ${limPct(x.secondary_percent)}</b></span>`;
+  const sp=t=>spent[t]!=null?'$'+(+spent[t]).toFixed(2):'$—';
+  const spendKv=spent.error
+    ? `<span class="kv">today UTC <b class="over" title="${esc(spent.error)}">API error</b></span>`
+    : `<span class="kv">today UTC <b${over?' class="over"':''}>${fmtCost(total)}</b></span><span class="kv">fable <b>${sp('fable')}</b></span><span class="kv">claude <b>${sp('claude')}</b></span><span class="kv">codex <b>free</b></span>`;
+  $('#topbar').innerHTML=`${spendKv}<span class="kv">cap ${capSel}</span><span class="kv">grade ${floorSel}</span><span class="msg" id="msg-cap"></span><span class="msg" id="msg-floor"></span>
+    <span class="grow"></span>${cl}${cx}<span class="kv">gen <b>${esc(fmtUtcHour(nowUtc))}</b></span><span class="tbtn" id="theme-btn">${themePref()==='dark'?'Light':'Dark'}</span>`;
+}
+
+/* ---------- prompt editor (versioned) ---------- */
+function promptEditor(p,label,hint){
+  if(!p)return '';
+  const vers=(p.versions||[]);
+  const rows=vers.map((v,i)=>{const cur=v.hash===p.current_hash;
+    return `<div class="vrow${cur?' cur':''}" data-view-ver="${esc(p.id)}" data-hash="${esc(v.hash)}"><span class="vh">${esc(v.hash)}</span><span class="vt">${esc(fmtWhen(v.ts))}</span>${cur?'<span class="g small">live</span>':''}<span class="vgrow"></span><span class="btn" data-restore-ver="${esc(p.id)}" data-hash="${esc(v.hash)}">restore</span></div>`;}).join('');
+  return `<div class="ed">
+    <div class="edhd"><span>${esc(label)} · <span class="mono">${esc(p.current_hash)}</span> · ${vers.length} version${vers.length===1?'':'s'}</span>
+      <span style="display:flex;gap:8px;align-items:center"><span class="msg" id="msg-prompt-${esc(p.id)}"></span><span class="btn pri" data-save-prompt="${esc(p.id)}">Save new version</span></span></div>
+    <textarea class="ta" id="prompt-${esc(p.id)}" spellcheck="false">${esc(p.text||'')}</textarea>
+    ${hint?`<div class="q" style="padding:6px 12px">${esc(hint)}</div>`:''}
+    <details class="disc" style="margin:0;padding:0 12px 6px"><summary>version history</summary>
+      <div class="vers">${rows||'<div class="q">no versions yet</div>'}<div class="verview" id="verview-${esc(p.id)}"></div></div>
+    </details></div>`;
+}
+
+/* ---------- RUNS ---------- */
+const STATE_CLS={passed:'g',running:'a',failed:'r',exhausted:'r',pending:'dim',canceled:'dim','—':'dim'};
+function stageTracker(stages){
+  return `<div class="stage">${(stages||[]).map((s,i)=>{
+    const cls=STATE_CLS[s.state]||'dim',act=s.state==='running'?' act':'';
+    return `<div class="stcell${act}"><div class="sn"><span>${esc(s.name)}</span><span class="state ${cls}">${esc(s.state)}</span></div><div class="sm">${esc(s.model)}</div></div>`;
+  }).join('')}</div>`;
+}
+function eventStream(r){
+  const ev=(r.events||[]);
+  const rows=ev.map(e=>`<div class="ev"><span class="edot ${esc(e.kind)}"></span><span class="ets">${esc(fmtClock(e.ts))}</span><span class="etext">${esc(e.text)}</span></div>`).join('');
+  return `<div class="stream"><div class="streamhd"><span>Live event stream${r.running?' · running':''}</span></div>${rows||'<div class="streamempty">No stage events recorded for this run yet.</div>'}</div>`;
+}
+function runDetail(r){
+  if(!r)return '<div class="detail dim">Select a run.</div>';
+  const st=scls(r.status),g=r.grade||{};
+  const verdict=r.running?'running':(r.status==='green'?'approve':(['canceled','stale','unknown'].includes(r.status)?r.status:'reject'));
+  const vcls=verdict==='approve'?'approve':(verdict==='running'?'none':(['canceled','stale','unknown','none'].includes(verdict)?'none':'reject'));
+  const badgeCls=st==='s-green'?'g':(st==='s-failed'?'r':(st==='s-running'?'a':''));
+  const cbm=r.cost_by_model||{},shortModel=m=>m.replace('claude-','').replace(/-\d+.*$/,'');
+  const cbmLine=Object.keys(cbm).length?`by model: ${Object.entries(cbm).sort((a,b)=>b[1]-a[1]).map(([m,c])=>`${esc(shortModel(m))} ${fmtCost(c)}`).join(' · ')} · codex ${fmtCost((r.cost_by_tier||{}).codex||0)} <span class="q">(flat-rate)</span>`:'';
+  const judges=(g.judges||[]).filter(j=>j.score!=null);
+  const lenses=judges.map(j=>`${esc(j.lens)} ${esc(j.score)}`).join(' · ');
+  const cites=judges.flatMap(j=>(j.citations||[]).map(c=>`<li><b>${esc(j.lens)}</b> — ${esc(c)}</li>`)).join('');
+  const gates=(r.evidence&&r.evidence.gates_tail)||[],log=(r.evidence&&r.evidence.log_tail)||[];
+  const activity=(r.activity||[]).map(a=>`<div class="act"><div class="acthd"><span class="actkind">${esc(a.kind)}</span><span>${esc(a.title)}</span><span class="actfile">${esc(a.file)}</span></div><pre>${esc(a.text)}</pre></div>`).join('');
+  const nums=[];
+  if(g.score!=null)nums.push(`<span class="gnum">${esc(g.score)}<span class="q">/100 graded</span></span>`);
+  return `<div class="detail">
+    <div class="hd"><div><h1 class="h1" style="font-size:18px">${r.short_id!=null?`<span class="mono b">#${esc(r.short_id)}</span> `:''}${r.url?`<a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.issue)}</a>`:esc(r.issue)}</h1>
+      <div class="small dim" style="margin-top:3px">${esc(r.title||'—')}${r.running?` · ${r.current_activity?esc(r.current_activity):`activity ${esc(fmtDur(r.idle_seconds||0))} ago`}`:''}</div></div>
+      <span style="display:flex;gap:8px;align-items:center"><span class="pill ${badgeCls}"><span class="d"></span>${esc(r.running?'running':r.status)}</span>
+      ${r.cancelable?`<button class="btn cut" data-cancel-run="${esc(r.base)}">Cancel</button><span class="msg"></span>`:''}</span></div>
+    ${stageTracker(r.stages)}
+    ${eventStream(r)}
+    <div class="sect"><div class="lbl">What it cost</div>
+      <div class="stat">
+        <div class="statcell"><div class="sv">${fmtCost(r.cost)}</div><div class="sl">metered cost</div></div>
+        <div class="statcell"><div class="sv">${(r.tokens||0).toLocaleString()}</div><div class="sl">claude tokens</div></div>
+        <div class="statcell"><div class="sv">${fmtDur(r.duration)}</div><div class="sl">wall time</div></div>
+        <div class="statcell"><div class="sv">${r.nsteps|0} · ${r.retries|0}</div><div class="sl">steps · retries</div></div></div>
+      ${cbmLine?`<div class="q" style="margin-top:8px">${cbmLine} · ${r.pushed?`pushed <b>${esc(r.commit||'')}</b>`:'not pushed'}</div>`:''}</div>
+    <div class="sect"><div class="lbl">The grade</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap"><span class="verdict ${vcls}">${esc(verdict).toUpperCase()}</span>${nums.join('')}</div>
+      ${lenses?`<div class="lenses">judge lenses: ${lenses}</div>`:''}
+      ${r.reason?`<div class="reason">failed: ${esc(r.reason)}</div>`:''}
+      ${cites?`<details class="disc"><summary>judge citations</summary><ul class="cites">${cites}</ul></details>`:''}
+      ${gates.length?`<details class="disc"><summary>gate log (tail)</summary><pre class="mono">${esc(gates.join('\n'))}</pre></details>`:''}
+      ${log.length?`<details class="disc"><summary>run log (tail)</summary><pre class="mono">${esc(log.join('\n'))}</pre></details>`:''}</div>
+    ${activity?`<div class="sect"><div class="lbl">Activity · recent run artifacts</div>${activity}</div>`:''}
+    <div class="sect"><div class="lbl">Phase prompts</div><div class="q">Pinned per run to the version they used — edit them in <a href="#settings">Settings › Phase prompts</a>.</div></div>`;
+}
+function renderRuns(d,sel){
+  const runs=d.runs||[],sm=d.summary||{};
+  const base=sel||(runs[0]&&runs[0].base);
+  const r=runs.find(x=>x.base===base)||runs[0];
+  const rail=runs.map(x=>{const st=scls(x.status);
+    return `<div class="runitem ${x.base===base?'on':''}" data-run="${esc(x.base)}">
+      <div class="rt">${x.short_id!=null?`<span class="sid">#${esc(x.short_id)}</span>`:''}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(x.title||x.issue)}</span></div>
+      <div class="rs ${st}"><span class="dot ${st}"></span>${esc(x.running?'running':x.status)}</div>
+      <div class="rmeta"><span>${esc(fmtDur(x.duration))}${x.running?` · active ${esc(fmtDur(x.idle_seconds||0))} ago`:''}</span><span>${fmtCost(x.cost)}</span></div></div>`;}).join('');
+  return `<div class="hd"><h1 class="h1">Runs</h1></div>
+    <div class="sub">A frozen contract.md drives Build ⇄ Verify.</div>
+    <div class="box" style="margin-bottom:14px"><div class="summ"><b>${sm.total|0}</b> runs <span class="dim">·</span> <b class="g">${sm.green|0}</b> <span class="dim">green</span> <span class="dim">·</span> <b class="b">${sm.pushed|0}</b> <span class="dim">pushed</span> <span class="dim">·</span> <b>$${(+sm.cost||0).toFixed(2)}</b> <span class="dim">total</span></div>${spendHistory(d.spend_history)}</div>
+    ${runs.length?`<div class="runs"><div class="rail"><div class="rlbl">Runs</div>${rail}</div>${runDetail(r)}</div>`:'<div class="box dim">No runs yet. Start one with <span class="mono">mil build --workdir REPO --contract contract.md</span>.</div>'}`;
+}
+
+/* ---------- BENCH ---------- */
+function renderBench(d,route){
+  const bench=d.bench||{},vers=(bench.versions)||[],ver=vers[0],parity=d.parity||[];
+  const sub=['pareto','grade'].includes(route.sub)?route.sub:'scores';
+  const switcher=`<div class="seg">
+    <a href="#bench/scores" class="${sub==='scores'?'on':''}">Scores</a>
+    <a href="#bench/pareto" class="${sub==='pareto'?'on':''}">Pareto</a>
+    <a href="#bench/grade" class="${sub==='grade'?'on':''}">Grade</a></div>`;
+  const head=`<div class="hd"><h1 class="h1">Bench</h1>${switcher}</div>`;
+  if(sub==='grade')return head+renderGrade(d);
+  if(!ver)return head+`<div class="box dim" style="margin-top:14px">No bench scores yet. Run <span class="mono">mil bench all</span> to start measuring.</div>`;
+  const ref=rnd(mean(ver.tasks.map(t=>t.reference).filter(x=>x!=null)));
+  const gold=rnd(mean(ver.tasks.map(t=>(t.gold||{}).score).filter(x=>x!=null)));
+  const one=rnd(mean(ver.tasks.map(t=>{const a=t.variants||{},m=a['milhouse']||a['oneshot'];return m?m.score:(bestArm(t)||{}).score;}).filter(x=>x!=null)));
+  const benched=ver.tasks.filter(t=>Object.keys(t.variants||{}).length);
+  const beats=benched.filter(t=>(t.gold||{}).score!=null&&(bestArm(t)||{}).score>(t.gold||{}).score).length;
+  const verdict=`beats gold on ${beats} of ${benched.length} benched tasks · ideal ${ref??'—'} · gold ${gold??'—'} · milhouse ${one??'—'}`;
+  let mid;
+  if(sub==='pareto')mid=route.task?paretoDrill(ver,parity,route.task):paretoMinis(ver);
+  else mid=scoresView(ver);
+  return head+`<div class="bhead">bench ${esc(ver.version)}</div><div class="bverdict">${esc(verdict)}</div>${mid}<div class="legend">${BENCH_LEGEND}</div>`;
+}
+function renderGrade(d){
+  const rows=(d.runs||[]).filter(r=>(r.grade||{}).score!=null).map(r=>{const g=r.grade||{};
+    const lenses=(g.judges||[]).filter(j=>j.score!=null).map(j=>`${esc(j.lens)} ${esc(j.score)}`).join(' · ');
+    return `<tr><td class="mono">${r.short_id!=null?'#'+esc(r.short_id):esc(r.issue)}</td><td>${esc(r.title||r.issue)}</td><td class="num">${esc(g.score)}</td><td class="mono small dim">${lenses||'—'}</td><td class="${scls(r.status)}">${esc(r.status)}</td></tr>`;}).join('');
+  return `<div class="sub">Manual and benchmark grading uses contract correctness plus independent minimality and evidence lenses.</div>
+    <table class="tbl"><thead><tr><th>Run</th><th>Task</th><th class="num">Score</th><th>Judge lenses</th><th>Status</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="5" class="dim">no graded runs yet</td></tr>'}</tbody></table>`;
+}
+
+/* ---------- SETTINGS ---------- */
+function renderSettings(d){
+  const cfg=d.config||{},checks=d.checks||{},cur=+((cfg||{}).daily_cost_cap_usd||0);
+  const capChips=CAP_OPTS.map(([v,l])=>`<div class="opt ${v===cur?'on':''}" data-cap="${v}">${esc(l)}</div>`).join('');
+  const checkRows=(arr,pathKey)=>(arr||[]).map(c=>`<tr><td>${esc(c.name)}</td><td class="mono dim">${esc(c[pathKey]||(c.ok?'ok':(c.hint||'')))}</td><td class="${c.ok?'g':'a'}">${c.ok?'ok':'needs attention'}</td></tr>`).join('');
+  const doctor=checkRows(checks.doctor,'path'),setup=checkRows(checks.setup,'hint');
+  const profiles=cfg.agents||[];
+  const profileSelect=(key,current,phase)=>`<select data-profile="${key}">${profiles.filter(p=>(p.phases||[]).includes(phase)).map(p=>`<option value="${esc(p.profile)}"${p.profile===current?' selected':''}>${esc(p.profile)} · I${p.intelligence} T${p.taste} C${p.cost}</option>`).join('')}</select>`;
+  const prompts=d.prompts||{};
+  return `<div class="hd"><h1 class="h1">Settings</h1></div>
+    <div class="sub">Install, model wiring, phase prompts, and architecture. No silent fallback from subscription to metered API.</div>
+    <div class="sect"><div class="lbl">Daily cost cap</div>
+      <div class="q" style="margin-bottom:10px">At or over this UTC-day metered API threshold, a caller respecting this gate should not select or claim new work. A run already claimed may finish.</div>
+      <div class="segw" id="cap-chips">${capChips}</div><span class="msg" id="msg-cap2"></span></div>
+    <div class="sect"><div class="lbl">Install</div><pre class="mono">cargo install --path /path/to/milhouse --bin mil
+mil setup</pre></div>
+    <div class="sect"><div class="lbl">Setup checks · mil doctor + mil setup</div>
+      <table class="tbl"><thead><tr><th>Check</th><th>Path / hint</th><th>Status</th></tr></thead>
+      <tbody>${setup}${doctor||''}</tbody></table>
+      <div class="q" style="margin-top:6px">Any failed check prints the exact next command. Setup fails fast rather than falling back to metered usage.${checks.generated_at?' · checked '+esc(fmtWhen(checks.generated_at)):''}</div></div>
+    <div class="sect"><div class="lbl">Models &amp; costs</div>
+      <table class="tbl"><thead><tr><th>Phase</th><th>Default model</th><th>Auth path</th><th>Role</th></tr></thead><tbody>
+        <tr><td>Plan</td><td>${profileSelect('plan_profile',cfg.plan_profile,'plan')}</td><td class="mono">profile-defined</td><td>Interactive Wayfinder or autonomous planner drafts contract.md.</td></tr>
+        <tr><td>Autoplan review</td><td>${profileSelect('autoplan_review_profile',cfg.autoplan_review_profile,'plan')}</td><td class="mono">profile-defined</td><td>Independent read-only gate before autonomous contracts become Ready for Build.</td></tr>
+        <tr><td>Build</td><td>${profileSelect('build_profile',cfg.build_profile,'build')}</td><td class="mono">subscription</td><td>Executes the frozen contract and records evidence.</td></tr>
+        <tr><td>Verify</td><td>${profileSelect('verify_profile',cfg.verify_profile,'verify')}</td><td class="mono">subscription</td><td>Fresh read-only review; pass ends, fail loops.</td></tr>
+      </tbody></table></div>
+    <div class="sect"><div class="lbl">Phase prompts</div>
+      <div class="q" style="margin-bottom:10px">The default prompt for each phase. Saving writes an immutable version to <span class="mono">~/.milhouse/versions/</span>; new runs pin the latest, in-flight runs keep the hash they started with.</div>
+      ${promptEditor(prompts['codex-loop'],'prompts/codex-loop.md — Build')}
+      ${promptEditor(prompts['verify'],'prompts/verify.md — Verify')}</div>
+    <div class="sect"><div class="lbl">Architecture</div>
+      <div class="q" style="margin-bottom:8px"><span class="mono">mil plan</span> produces the only pre-build artifact. <span class="mono">mil build</span> freezes and executes it.</div>
+      <div class="flow">
+        <div class="fnode"><h4>Contract</h4><p>Wayfinder resolves the fuzzy idea into complete acceptance criteria.</p></div>
+        <div class="arr">→</div>
+        <div class="fnode"><h4>Build</h4><p>The selected builder pursues a persisted goal, records history, and returns for verification.</p></div>
+        <div class="arr">⇄</div>
+        <div class="fnode"><h4>Verify</h4><p>The selected fresh reviewer checks evidence against contract.md. Pass ends; fail loops back.</p></div></div>
+      <div class="loopnote"><span class="mono">Build ⇄ Verify</span> repeats until verified pass or run limit. State lives in <span class="mono">~/.milhouse</span>; history is append-only JSONL.</div></div>
+    <div class="sect"><div class="lbl">Docs</div>
+      <table class="tbl"><tbody>
+        <tr><td>Plan &amp; design</td><td class="mono dim">/Users/Shared/milhouse-plan/index.html</td></tr>
+        <tr><td>Repo</td><td class="mono dim">github.com/daydemir/milhouse</td></tr>
+      </tbody></table></div>`;
+}
+
+/* ---------- router ---------- */
+let DATA=null;
+const NAV=[['runs','Runs','live'],['bench','Bench',''],['settings','Settings','']];
+function parseHash(){
+  const parts=location.hash.replace(/^#/,'').split('/').filter(Boolean);
+  const tab=['runs','bench','settings'].includes(parts[0])?parts[0]:'runs';
+  return {tab,sub:parts[1]||'',task:parts.slice(2).join('/'),arg:parts[1]||''};
+}
+function renderNav(tab){
+  $('#nav').innerHTML=NAV.map(([k,l,n])=>`<a class="navi ${k===tab?'on':''}" href="#${k}"><span>${l}</span><span class="n">${n}</span></a>`).join('');
+}
+function route(){
+  if(!DATA)return;
+  const r=parseHash();
+  renderNav(r.tab);
+  const el=$('#page');
+  if(r.tab==='bench')el.innerHTML=renderBench(DATA,r);
+  else if(r.tab==='settings')el.innerHTML=renderSettings(DATA);
+  else el.innerHTML=renderRuns(DATA,r.tab==='runs'?r.arg:'');
+}
+function render(d){
+  DATA=d;
+  const ae=document.activeElement;
+  if(ae&&(ae.tagName==='TEXTAREA'||ae.tagName==='SELECT'))return; // don't clobber mid-edit
+  topbar(d);route();
+}
+
+/* ---------- theme ---------- */
+function themePref(){return document.documentElement.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');}
+(function(){const t=localStorage.getItem('mil-theme');if(t)document.documentElement.setAttribute('data-theme',t);})();
+
+/* ---------- interactions ---------- */
+const lb=$('#lb');
+document.addEventListener('change',e=>{
+  const cap=e.target.closest('#cap-sel');if(cap){postControl('config',{daily_cost_cap_usd:+cap.value},$('#msg-cap'));return;}
+  const fl=e.target.closest('#floor-sel');if(fl){postControl('config',{grade_floor:+fl.value},$('#msg-floor'));return;}
+  const mp=e.target.closest('[data-profile]');if(mp){postControl('config',{[mp.dataset.profile]:mp.value},null);return;}
+});
+document.addEventListener('click',e=>{
+  const th=e.target.closest('#theme-btn');
+  if(th){const next=themePref()==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',next);localStorage.setItem('mil-theme',next);if(DATA)topbar(DATA);return;}
+  const capc=e.target.closest('[data-cap]');
+  if(capc){postControl('config',{daily_cost_cap_usd:+capc.dataset.cap},$('#msg-cap2'));return;}
+  const sv=e.target.closest('[data-save-prompt]');
+  if(sv){const id=sv.dataset.savePrompt,ta=$('#prompt-'+id);savePrompt(id,ta?ta.value:'',$('#msg-prompt-'+id));return;}
+  const rv=e.target.closest('[data-restore-ver]');
+  if(rv){e.stopPropagation();const id=rv.dataset.restoreVer;if(confirm('Restore version '+rv.dataset.hash+' as the live '+id+' prompt?'))restorePrompt(id,rv.dataset.hash,$('#msg-prompt-'+id));return;}
+  const vv=e.target.closest('[data-view-ver]');
+  if(vv){viewVersion(vv.dataset.viewVer,vv.dataset.hash);return;}
+  const cn=e.target.closest('[data-cancel-run]');
+  if(cn){e.preventDefault();if(confirm('Cancel run '+cn.dataset.cancelRun+'?'))cancelRun(cn.dataset.cancelRun,(cn.parentElement||document).querySelector('.msg'));return;}
+  const ri=e.target.closest('[data-run]');
+  if(ri){location.hash='#runs/'+ri.dataset.run;return;}
+  const dx=e.target.closest('#drillx');
+  if(dx){location.hash='#bench/pareto';return;}
+  const row=e.target.closest('.srow[data-task],.pmini[data-task]');
+  if(row){location.hash='#bench/pareto/'+row.dataset.task;return;}
+  const img=e.target.closest('.shots img');
+  if(img){lb.querySelector('img').src=img.src;lb.classList.add('on');return;}
+  if(e.target.closest('#lb')){lb.classList.remove('on');return;}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(lb.classList.contains('on'))lb.classList.remove('on');else if(parseHash().task)location.hash='#bench/pareto';}});
+window.addEventListener('hashchange',route);
+
+async function tick(){
+  try{const r=await fetch('data.json?t='+Date.now());render(await r.json());}
+  catch(e){const p=$('#page');if(p&&!p.innerHTML)p.innerHTML='<div class="box dim">data.json unavailable — is <span class="mono">mil dashboard</span> running?</div>';}
+}
+tick();setInterval(tick,10000);
+</script>

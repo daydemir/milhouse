@@ -1,0 +1,5 @@
+title,lat,lng,note
+Grand Lake Theater,37.81150,-122.24700,1926 movie palace
+Rotary Nature Center,37.81100,-122.25700,oldest US wildlife refuge
+City Hall,37.80200,-122.26800,far duplicate title >25m away
+Broken,,-122.26000,MALFORMED empty lat

@@ -1,0 +1,16 @@
+# Milhouse local run state lives in ~/.milhouse (runs/, runs.jsonl, dash payload) — never in-repo.
+# Benchmark results and local inputs stay private.
+/parity/
+.env
+.env.*
+*.pem
+*.key
+dash/data.json
+*.tmp
+*.lock
+!Cargo.lock
+__pycache__/
+.claude/
+target/
+v3/sdk/.venv/
+v3/sdk/__pycache__/

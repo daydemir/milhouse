@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "bench score",
+  "description": "The single verdict a bench scorer (fable) must emit for one task attempt. Evidence is mandatory — every score must cite what it saw in the artifacts.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["score", "summary", "evidence", "per_criterion"],
+  "properties": {
+    "score": { "type": "number", "minimum": 0, "maximum": 100 },
+    "summary": { "type": "string", "minLength": 1 },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Concrete citations from the artifacts (file:line, a quoted line, a command's output). No score may rest on an empty evidence list.",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "per_criterion": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["criterion", "met", "note"],
+        "properties": {
+          "criterion": { "type": "string" },
+          "met": { "enum": ["yes", "partial", "no"] },
+          "note": { "type": "string" }
+        }
+      }
+    }
+  }
+}

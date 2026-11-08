@@ -1,0 +1,4 @@
+interface:
+  display_name: "Mil Plan (Wayfinder)"
+  short_description: "Wayfind a fuzzy idea into a build contract"
+  default_prompt: "Use $mil-plan to map this fuzzy idea into decision tickets and a final contract.md."

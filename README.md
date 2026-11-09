@@ -11,7 +11,7 @@ Milhouse hands a coding task to AI agents and keeps them working until an indepe
 A [Ralph Loop](https://ghuntley.com/ralph/) runs an agent on the same task over and over until it finishes. Milhouse keeps the loop and adds the glasses: a written contract that says what "done" means, and a separate reviewer that checks the work against it.
 
 > [!NOTE]
-> **This is a historical project.** It's published so you can read how it works and borrow ideas. It won't run as-is, because it depends on Agent Bridge and `rolly`, private tools that aren't included here. Its newer, prompt-only successor, `climb`, lives in a separate private repo.
+> **This is a historical project.** It's published so you can read how it works and borrow ideas. It won't run as-is, because it depends on Agent Bridge and `rolly`, private tools that aren't included here. Its newer, prompt-only successor, [`climb`](https://github.com/daydemir/dstack/tree/main/skills/climb), lives in dstack.
 
 > [!CAUTION]
 > **Use at your own risk.** The builder runs Codex with its sandbox and approval prompts turned off, so it can change anything your user account can. Run it in a sandboxed environment.
